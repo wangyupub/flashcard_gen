@@ -19,9 +19,7 @@ h = httplib2.Http(".cache")
 key = "031e48e5-3b15-4bfd-bc33-16fdc78ae909"
 
 for word in words:
-	strFront = word.rstrip();
 	strBack = ""
-	#print('[' + strFront + ']')
 	url = learnersdicturlbase + word.lower().rstrip() + "?key=" + key;
 	resp, content = h.request(url, "GET")
 	strContent = content.decode(encoding='UTF-8')
@@ -32,11 +30,46 @@ for word in words:
 	except:
 		# no parse-able result
 		errorfile.write(word)
-		print("{} is not found".format(strFront))
+		print("{} is not found".format(word.rstrip()))
 		continue
+	found = False
 	for entry in root.findall("entry"):
 		if entry is not None:
-			strBack = entry.get("id")
+			strFront = entry.get("id")
+			strBack = strFront + "<br>"
+
+			# entry has to match "word[" or "word$"
+			valid = None
+			pattern = "^" + word.lower().rstrip() +"\["
+			result = re.match(pattern, strFront.lower().rstrip())
+			if result is not None:
+				valid = True
+
+			pattern = word.lower().rstrip() + "$"
+			result = re.match(pattern, strFront.lower().rstrip())
+			if result is not None:
+				valid = True
+
+				
+			if not valid:
+				
+				for in_ in entry.findall("in"):
+					if in_ is not None:
+						for if_ in in_.findall("if"):
+							if if_.text.replace("*", "") == word.lower().rstrip():
+								#print(strFront + " matches for " + word.lower().rstrip())
+								valid = True
+				for uro in entry.findall("uro"):
+					if uro is not None:
+						for ure in uro.findall("ure"):
+							if ure.text.replace("*", "") == word.lower().rstrip():
+								#print(strFront + " matches for " + word.lower().rstrip())
+								valid = True
+				if not valid:
+					#print("skipping [" + strFront + "] for " + word.rstrip())
+					continue
+			
+			# process result to generate the output	
 			for fl in entry.findall("fl"):
 				strBack = strBack + " " + fl.text
 			for pr in entry.findall("pr"):
@@ -51,16 +84,15 @@ for word in words:
 						if vi is not None:
 							if vi.text is not None:
 								strBack = strBack + "[e.g.]" + vi.text + "<br><br>"
-	#print(strBack)
-	pattern = "^" + word.lower().rstrip();
-	result = re.match(pattern, strBack);
-	if result is None:
-		print(strFront)
-		print(strBack)
-	else:
-		flashcardfile.write(strFront + "\t" + strBack + "\n")		
+					
+			# append the result to the output file					
+			flashcardfile.write(strFront + "\t" + strBack + "\n")
+			found = True
 
-	#flashcardfile.write(strContent)
+	if not found:
+		errorfile.write(word)
+		print("{} is not found".format(word.rstrip()))
+	
 	
 
 
