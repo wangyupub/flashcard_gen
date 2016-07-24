@@ -1,11 +1,13 @@
 import os
+import argparse
 
 EXCLUDED_FILES = set(['navigation.md'])
 
-def generateIndex(folder, output = "index(generated).md", exclusion = set([])) :
+def generateIndex(folder, output, exclusion = set([])) :
     TITLE_FORMAT = "#{head1}"
-    exclusion.add(output)
-    out = open(output, 'w')
+    outputName = output + ".md"
+    exclusion.add(outputName)
+    out = open(os.path.join(folder, outputName), 'w')
     # write the folder name as title
     title = (os.path.basename(os.path.abspath(folder)))
     out.write(TITLE_FORMAT.format(head1 = title))
@@ -23,4 +25,20 @@ def _generateLink(file) :
     return LINK_FORMAT.format(title = name, location = file)
 
 if __name__ == "__main__":
-    generateIndex(".", exclusion = EXCLUDED_FILES)
+    # define arguments
+    parser = argparse.ArgumentParser(description = "Generate index files for wiki")
+    parser.add_argument("--indexName", help = "Generated index file name")
+    parser.add_argument("--rootDir", help = "Root directory")
+    args = parser.parse_args()
+
+    indexName = "index(generated)"
+    rootDir = "."
+    if (args.indexName):
+        indexName = args.indexName
+        print "indexName: " + indexName
+    if (args.rootDir):
+        rootDir = args.rootDir
+        print "rootDir: " + rootDir
+
+    # generate index files
+    generateIndex(rootDir, indexName, EXCLUDED_FILES)
