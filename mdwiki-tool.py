@@ -3,7 +3,7 @@ import argparse
 import hashlib
 import logging
 
-EXCLUDED_FILES = set(['navigation.md'])
+EXCLUDED_FILES = set(['navigation.md', 'pages', 'images', 'index(generated).md'])
 LOG = logging.getLogger('mdwiki-tool')
 LOG.setLevel(logging.INFO)
 def generateIndex(folder, output_filename, exclusion, depth) :
